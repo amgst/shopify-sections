@@ -1,13 +1,39 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { insertSectionSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  app.get("/api/sections", async (_req, res) => {
+    try {
+      const sections = await storage.getAllSections();
+      res.json(sections);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/sections/:id", async (req, res) => {
+    try {
+      const section = await storage.getSectionById(req.params.id);
+      if (!section) {
+        return res.status(404).json({ message: "Section not found" });
+      }
+      res.json(section);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/sections", async (req, res) => {
+    try {
+      const validatedData = insertSectionSchema.parse(req.body);
+      const section = await storage.createSection(validatedData);
+      res.status(201).json(section);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
 
   const httpServer = createServer(app);
 
