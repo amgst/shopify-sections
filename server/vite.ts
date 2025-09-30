@@ -68,7 +68,13 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // In production, the server is running from `dist/index.js`
+  // so the `public` directory is either in `dist/public` (local)
+  // or `../public` (vercel)
+  let distPath = path.resolve(import.meta.dirname, "public");
+  if (!fs.existsSync(distPath)) {
+    distPath = path.resolve(import.meta.dirname, "..", "public");
+  }
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
