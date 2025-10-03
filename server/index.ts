@@ -6,6 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Request logging for /api routes
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -15,7 +16,7 @@ app.use((req, res, next) => {
   res.json = function (bodyJson, ...args) {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+  } as typeof res.json;
 
   res.on("finish", () => {
     const duration = Date.now() - start;
@@ -36,7 +37,7 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+async function initApp() {
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -47,25 +48,41 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // In development, set up Vite middleware for HMR.
+  // In production (including Vercel), serve prebuilt static assets.
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+  return server;
+}
+
+const isVercel = !!process.env.VERCEL;
+const initPromise = initApp();
+
+// Export a serverless handler for Vercel.
+export default async function handler(req: any, res: any) {
+  await initPromise;
+  app(req, res);
+}
+
+// Local / non-serverless execution: start a listener
+if (!isVercel) {
+  (async () => {
+    const server = await initPromise;
+
+    // ALWAYS serve on env PORT (default 3000)
+    const port = parseInt(process.env.PORT || "3000", 10);
+    server.listen(
+      {
+        port,
+        host: "localhost", // avoid ENOTSUP error in certain environments
+      },
+      () => {
+        log(`serving on port ${port}`);
+      },
+    );
+  })();
+}

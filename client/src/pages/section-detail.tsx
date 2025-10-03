@@ -11,13 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Download, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Section } from "@shared/schema";
+import { createSectionUrl } from "@/lib/slugify";
 
 export default function SectionDetail() {
-  const [, params] = useRoute("/section/:id");
+  const [, params] = useRoute("/section/:slug");
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const sectionId = params?.id || "";
+  // Extract the ID from the slug (format: "id-title-slug")
+  const sectionId = params?.slug ? params.slug.split('-')[0] : "";
 
   const { data: section, isLoading } = useQuery<Section>({
     queryKey: ["/api/sections", sectionId],

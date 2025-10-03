@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "wouter";
+import { createSectionUrl } from "@/lib/slugify";
 
 interface SectionCardProps {
   id: string;
@@ -25,7 +26,7 @@ export default function SectionCard({
 }: SectionCardProps) {
   return (
     <Card className="group overflow-hidden hover-elevate active-elevate-2 transition-all duration-200 hover:shadow-lg" data-testid={`card-section-${id}`}>
-      <Link href={`/section/${id}`}>
+      <Link href={`/section/${createSectionUrl(id, title)}`}>
         <div className="relative aspect-video overflow-hidden bg-muted">
           <img
             src={thumbnailUrl}
@@ -46,7 +47,7 @@ export default function SectionCard({
           {category}
         </Badge>
         
-        <Link href={`/section/${id}`}>
+        <Link href={`/section/${createSectionUrl(id, title)}`}>
           <h3 className="font-semibold text-xl text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-1" data-testid={`text-title-${id}`}>
             {title}
           </h3>
@@ -60,10 +61,10 @@ export default function SectionCard({
       <CardFooter className="p-6 pt-0 flex items-center justify-between border-t border-border mt-auto">
         <div className="flex items-center gap-1.5 text-muted-foreground text-sm" data-testid={`text-downloads-${id}`}>
           <Download className="w-4 h-4" />
-          <span>{downloads.toLocaleString()} downloads</span>
+          <span>{downloads ? downloads.toLocaleString() : '0'} downloads</span>
         </div>
         
-        <Link href={`/section/${id}`}>
+        <Link href={`/section/${createSectionUrl(id, title)}`}>
           <Button variant="ghost" size="sm" className="gap-1.5" data-testid={`button-preview-${id}`}>
             <Eye className="w-4 h-4" />
             Preview
