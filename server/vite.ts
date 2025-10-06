@@ -5,6 +5,7 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { fileURLToPath } from "url";
 
 const viteLogger = createLogger();
 
@@ -68,18 +69,35 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  // In production, the server is running from `dist/index.js`
-  // so the `public` directory is either in `dist/public` (local)
-  // or `../public` (vercel)
-  let distPath = path.resolve(import.meta.dirname, "public");
-  if (!fs.existsSync(distPath)) {
-    distPath = path.resolve(import.meta.dirname, "..", "public");
-  }
+  // Resolve base directory in both ESM and CJS environments
+  const baseDir =
+    typeof __dirname !== "undefined"
+      ? __dirname
+      : path.dirname(fileURLToPath(import.meta.url));
 
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+  // Candidate paths for built client assets
+  const candidates = [
+    path.resolve(process.cwd(), "dist", "public"),
+    path.resolve(baseDir, "public"),
+    path.resolve(baseDir, "..", "public"),
+  ];
+
+  const distPath = candidates.find((p) => fs.existsSync(p));
+
+  if (!distPath) {
+    console.warn(
+      "Could not find the build directory. Checked:",
+      candidates.join(", "),
     );
+    // Minimal fallback to avoid crashing the function
+    app.get("*", (_req, res) => {
+      res
+        .status(200)
+        .send(
+          "<!doctype html><html><head><meta charset=\"utf-8\"><title>App</title></head><body><div id=\"root\"></div></body></html>",
+        );
+    });
+    return;
   }
 
   app.use(express.static(distPath));
