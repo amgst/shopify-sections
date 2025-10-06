@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import FilterSidebar from "@/components/FilterSidebar";
@@ -16,36 +16,11 @@ import {
 } from "@/components/ui/sheet";
 import type { Section } from "@shared/schema";
 
-const filterGroups = [
-  {
-    id: "category",
-    label: "Category",
-    filters: [
-      { id: "hero", label: "Hero Sections", count: 24 },
-      { id: "product", label: "Product Display", count: 32 },
-      { id: "testimonial", label: "Testimonials", count: 12 },
-      { id: "newsletter", label: "Newsletter", count: 15 },
-      { id: "collection", label: "Collections", count: 18 },
-    ],
-  },
-  {
-    id: "type",
-    label: "Type",
-    filters: [
-      { id: "free", label: "Free", count: 65 },
-      { id: "premium", label: "Premium", count: 55 },
-    ],
-  },
-  {
-    id: "features",
-    label: "Features",
-    filters: [
-      { id: "responsive", label: "Responsive", count: 120 },
-      { id: "animations", label: "Animations", count: 45 },
-      { id: "dark-mode", label: "Dark Mode", count: 38 },
-    ],
-  },
-];
+function humanizeLabel(value: string) {
+  return value
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function Browse() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,6 +29,61 @@ export default function Browse() {
   const { data: sections, isLoading } = useQuery<Section[]>({
     queryKey: ["/api/sections"],
   });
+
+  const filterGroups = useMemo(() => {
+    const categoryCounts: Record<string, number> = {};
+    const featureCounts: Record<string, number> = {};
+    let freeCount = 0;
+    let premiumCount = 0;
+
+    (sections || []).forEach((section) => {
+      // Category
+      const cat = section.category || "Unknown";
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+
+      // Type
+      if (section.isPremium) premiumCount += 1;
+      else freeCount += 1;
+
+      // Features (tags)
+      (section.filters || []).forEach((f) => {
+        featureCounts[f] = (featureCounts[f] || 0) + 1;
+      });
+    });
+
+    return [
+      {
+        id: "category",
+        label: "Category",
+        filters: Object.keys(categoryCounts)
+          .sort((a, b) => a.localeCompare(b))
+          .map((cat) => ({
+            id: `category:${cat}`,
+            label: cat,
+            count: categoryCounts[cat],
+          })),
+      },
+      {
+        id: "type",
+        label: "Type",
+        filters: [
+          { id: "type:free", label: "Free", count: freeCount },
+          { id: "type:premium", label: "Premium", count: premiumCount },
+        ],
+      },
+      {
+        id: "features",
+        label: "Features",
+        filters: Object.keys(featureCounts)
+          .sort((a, b) => a.localeCompare(b))
+          .map((f) => ({
+            id: `feature:${f}`,
+            label: humanizeLabel(f),
+            count: featureCounts[f],
+          })),
+      },
+    ];
+  }, [sections]);
 
   const handleFilterChange = (filterId: string) => {
     setSelectedFilters((prev) =>
@@ -64,11 +94,34 @@ export default function Browse() {
   };
 
   const filteredSections = (sections || []).filter((section) => {
-    const matchesSearch = section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       section.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilters = selectedFilters.length === 0 ||
-      selectedFilters.some((filter) => section.filters.includes(filter));
+
+    // Group-aware filtering: OR within group, AND across groups
+    const selectedCategories = selectedFilters
+      .filter((f) => f.startsWith("category:"))
+      .map((s) => s.split(":")[1].toLowerCase());
+    const selectedTypes = selectedFilters
+      .filter((f) => f.startsWith("type:"))
+      .map((s) => s.split(":")[1]);
+    const selectedFeatures = selectedFilters
+      .filter((f) => f.startsWith("feature:"))
+      .map((s) => s.split(":")[1]);
+
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes((section.category || "").toLowerCase());
+
+    const matchesType =
+      selectedTypes.length === 0 ||
+      selectedTypes.includes(section.isPremium ? "premium" : "free");
+
+    const matchesFeatures =
+      selectedFeatures.length === 0 ||
+      selectedFeatures.some((v) => (section.filters || []).includes(v));
+
+    const matchesFilters = matchesCategory && matchesType && matchesFeatures;
 
     return matchesSearch && matchesFilters;
   });

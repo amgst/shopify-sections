@@ -35,6 +35,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete a specific section by ID
+  app.delete("/api/sections/:id", async (req, res) => {
+    try {
+      await storage.deleteSection(req.params.id);
+      res.status(204).end();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Delete all sections (use carefully)
+  app.delete("/api/sections", async (_req, res) => {
+    try {
+      const deleted = await storage.deleteAllSections();
+      res.json({ deleted });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
