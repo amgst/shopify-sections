@@ -2,6 +2,7 @@ import { type User, type InsertUser, type Section, type InsertSection } from "@s
 // firebase-admin removed
 import { initializeApp as initializeClientApp } from "firebase/app";
 import { initializeFirestore, collection, query, orderBy, getDocs, doc as clientDoc, getDoc as getClientDoc, addDoc, Timestamp as ClientTimestamp, deleteDoc } from "firebase/firestore";
+import { randomUUID } from "crypto";
 
 // Initialize Firebase Web SDK only (no Admin)
 let webFirestore: import("firebase/firestore").Firestore | undefined;
@@ -21,7 +22,7 @@ if (true) {
       ignoreUndefinedProperties: true,
     });
   } catch (e) {
-    console.warn("Firebase Web SDK initialization failed. Falling back to MockStorage.", e);
+    console.warn("Firebase Web SDK initialization failed. Falling back to MemoryStorage.", e);
   }
 }
 
@@ -185,5 +186,74 @@ class WebFirebaseStorage implements IStorage {
   }
 }
 
-// Export storage preferring Admin, else Web SDK
-export const storage: IStorage = new WebFirebaseStorage(webFirestore!);
+// Fallback in-memory storage used if Firebase cannot be initialized
+class MemoryStorage implements IStorage {
+  private users = new Map<string, User>();
+  private sections = new Map<string, Section>();
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    for (const u of this.users.values()) {
+      if (u.username === username) return u;
+    }
+    return undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const now = new Date();
+    const user: User = {
+      id: randomUUID(),
+      username: insertUser.username,
+      // @ts-expect-error password exists on InsertUser but not on User in shared types
+      password: (insertUser as any).password,
+      createdAt: now,
+      updatedAt: now,
+    } as User;
+    this.users.set(user.id, user);
+    return user;
+  }
+
+  async getAllSections(): Promise<Section[]> {
+    return Array.from(this.sections.values());
+  }
+
+  async getSectionById(id: string): Promise<Section | undefined> {
+    return this.sections.get(id);
+  }
+
+  async createSection(insertSection: InsertSection): Promise<Section> {
+    const now = new Date();
+    const section: Section = {
+      id: randomUUID(),
+      title: insertSection.title,
+      category: insertSection.category,
+      description: insertSection.description,
+      thumbnailUrl: insertSection.thumbnailUrl,
+      downloads: insertSection.downloads ?? 0,
+      isPremium: !!insertSection.isPremium,
+      filters: insertSection.filters ?? [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.sections.set(section.id, section);
+    return section;
+  }
+
+  async deleteSection(id: string): Promise<void> {
+    this.sections.delete(id);
+  }
+
+  async deleteAllSections(): Promise<number> {
+    const count = this.sections.size;
+    this.sections.clear();
+    return count;
+  }
+}
+
+// Export storage preferring Firebase Web SDK, else fallback to memory implementation
+export const storage: IStorage = webFirestore
+  ? new WebFirebaseStorage(webFirestore)
+  : new MemoryStorage();

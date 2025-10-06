@@ -10,3 +10,5 @@ vite.config.ts.*
 
 # Vercel env import files (do not commit)
 vercel.env.*
+
+.vercel
