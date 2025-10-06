@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Section, type InsertSection } from "@shared/schema";
+import { type User, type InsertUser, type Section, type InsertSection } from "../shared/schema";
 // firebase-admin removed
 import { initializeApp as initializeClientApp } from "firebase/app";
 import { initializeFirestore, collection, query, orderBy, getDocs, doc as clientDoc, getDoc as getClientDoc, addDoc, Timestamp as ClientTimestamp, deleteDoc } from "firebase/firestore";
@@ -6,7 +6,19 @@ import { randomUUID } from "crypto";
 
 // Initialize Firebase Web SDK only (no Admin)
 let webFirestore: import("firebase/firestore").Firestore | undefined;
-if (true) {
+const requiredFirebaseKeys = [
+  "FIREBASE_API_KEY",
+  "FIREBASE_AUTH_DOMAIN",
+  "FIREBASE_PROJECT_ID",
+  "FIREBASE_STORAGE_BUCKET",
+  "FIREBASE_MESSAGING_SENDER_ID",
+  "FIREBASE_APP_ID",
+];
+const hasAllFirebaseEnv = requiredFirebaseKeys.every((k) => {
+  const v = process.env[k];
+  return typeof v === "string" && v.trim().length > 0;
+});
+if (hasAllFirebaseEnv) {
   try {
     const firebaseConfig = {
       apiKey: process.env.FIREBASE_API_KEY!,
@@ -24,6 +36,10 @@ if (true) {
   } catch (e) {
     console.warn("Firebase Web SDK initialization failed. Falling back to MemoryStorage.", e);
   }
+} else {
+  console.warn(
+    "Missing Firebase environment variables. Using in-memory storage fallback for sections API.",
+  );
 }
 
 export interface IStorage {
