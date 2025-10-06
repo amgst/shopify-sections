@@ -6,6 +6,17 @@ import { randomUUID } from "crypto";
 
 // Initialize Firebase Web SDK only (no Admin)
 let webFirestore: import("firebase/firestore").Firestore | undefined;
+
+// Helper to read env from FIREBASE_* or fallback to VITE_FIREBASE_*
+const readEnv = (key: string): string | undefined => {
+  const direct = process.env[key];
+  if (typeof direct === "string" && direct.trim().length > 0) return direct.trim();
+  const viteKey = key.startsWith("FIREBASE_") ? `VITE_${key}` : key;
+  const viteVal = process.env[viteKey];
+  if (typeof viteVal === "string" && viteVal.trim().length > 0) return viteVal.trim();
+  return undefined;
+};
+
 const requiredFirebaseKeys = [
   "FIREBASE_API_KEY",
   "FIREBASE_AUTH_DOMAIN",
@@ -14,19 +25,16 @@ const requiredFirebaseKeys = [
   "FIREBASE_MESSAGING_SENDER_ID",
   "FIREBASE_APP_ID",
 ];
-const hasAllFirebaseEnv = requiredFirebaseKeys.every((k) => {
-  const v = process.env[k];
-  return typeof v === "string" && v.trim().length > 0;
-});
+const hasAllFirebaseEnv = requiredFirebaseKeys.every((k) => !!readEnv(k));
 if (hasAllFirebaseEnv) {
   try {
     const firebaseConfig = {
-      apiKey: process.env.FIREBASE_API_KEY!,
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN!,
-      projectId: process.env.FIREBASE_PROJECT_ID!,
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET!,
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID!,
-      appId: process.env.FIREBASE_APP_ID!,
+      apiKey: readEnv("FIREBASE_API_KEY")!,
+      authDomain: readEnv("FIREBASE_AUTH_DOMAIN")!,
+      projectId: readEnv("FIREBASE_PROJECT_ID")!,
+      storageBucket: readEnv("FIREBASE_STORAGE_BUCKET")!,
+      messagingSenderId: readEnv("FIREBASE_MESSAGING_SENDER_ID")!,
+      appId: readEnv("FIREBASE_APP_ID")!,
     };
     const webApp = initializeClientApp(firebaseConfig);
     webFirestore = initializeFirestore(webApp, {
@@ -37,8 +45,9 @@ if (hasAllFirebaseEnv) {
     console.warn("Firebase Web SDK initialization failed. Falling back to MemoryStorage.", e);
   }
 } else {
+  const missing = requiredFirebaseKeys.filter((k) => !readEnv(k));
   console.warn(
-    "Missing Firebase environment variables. Using in-memory storage fallback for sections API.",
+    `Missing Firebase environment variables (${missing.join(", ")}). Using in-memory storage fallback for sections API.`,
   );
 }
 
