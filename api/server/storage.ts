@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Section, type InsertSection } from "../shared/schema";
+import { type User, type InsertUser, type Section, type InsertSection } from "../shared/schema.js";
 // firebase-admin removed
 import { initializeApp as initializeClientApp } from "firebase/app";
 import { initializeFirestore, collection, query, orderBy, getDocs, doc as clientDoc, getDoc as getClientDoc, addDoc, Timestamp as ClientTimestamp, deleteDoc } from "firebase/firestore";

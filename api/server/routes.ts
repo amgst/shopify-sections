@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertSectionSchema } from "../shared/schema";
+import { storage } from "./storage.js";
+import { insertSectionSchema } from "../shared/schema.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/sections", async (_req, res) => {

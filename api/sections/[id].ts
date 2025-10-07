@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { storage } from "../server/storage";
+import { storage } from "../server/storage.js";
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   const method = (req as any).method || "GET";

@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { insertSectionSchema } from "../shared/schema";
-import { storage } from "../server/storage";
+import { insertSectionSchema } from "../shared/schema.js";
+import { storage } from "../server/storage.js";
 
 function genReqId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
