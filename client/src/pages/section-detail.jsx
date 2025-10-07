@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Download, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { extractIdFromSlug } from "@/lib/slugify";
+
 export default function SectionDetail() {
     const [, params] = useRoute("/section/:slug");
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
-    // Extract the ID from the slug (format: "id-title-slug")
-    const sectionId = (params === null || params === void 0 ? void 0 : params.slug) ? params.slug.split('-')[0] : "";
+    // Extract the ID from the slug using the new robust extraction
+    const sectionId = (params === null || params === void 0 ? void 0 : params.slug) ? extractIdFromSlug(params.slug) : "";
     const { data: section, isLoading } = useQuery({
         queryKey: ["/api/sections", sectionId],
         enabled: !!sectionId,
@@ -26,6 +28,41 @@ export default function SectionDetail() {
     const relatedSections = (allSections || [])
         .filter(s => s.id !== sectionId && s.category === (section === null || section === void 0 ? void 0 : section.category))
         .slice(0, 3);
+    
+    // Update SEO meta tags when section loads
+    useEffect(() => {
+        if (section) {
+            document.title = `${section.title} - ${section.category} | Shopify Sections`;
+            
+            // Update or create meta description
+            let metaDescription = document.querySelector('meta[name="description"]');
+            if (!metaDescription) {
+                metaDescription = document.createElement('meta');
+                metaDescription.setAttribute('name', 'description');
+                document.head.appendChild(metaDescription);
+            }
+            metaDescription.setAttribute('content', section.description);
+
+            // Update or create Open Graph tags
+            const ogTags = [
+                { property: 'og:title', content: `${section.title} - Shopify Sections` },
+                { property: 'og:description', content: section.description },
+                { property: 'og:image', content: section.thumbnailUrl },
+                { property: 'og:type', content: 'website' },
+            ];
+
+            ogTags.forEach(({ property, content }) => {
+                let tag = document.querySelector(`meta[property="${property}"]`);
+                if (!tag) {
+                    tag = document.createElement('meta');
+                    tag.setAttribute('property', property);
+                    document.head.appendChild(tag);
+                }
+                tag.setAttribute('content', content);
+            });
+        }
+    }, [section]);
+    
     const handleDownload = async () => {
         setIsDownloading(true);
         await new Promise((resolve) => setTimeout(resolve, 1500));
