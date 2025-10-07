@@ -3,9 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "functions": {
-    "api/**/*.ts": {
-      "includeFiles": "shared/schema.ts"
-    }
+    "api/**/*.ts": {}
   },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
