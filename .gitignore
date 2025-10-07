@@ -5,6 +5,10 @@ server/public
 vite.config.ts.*
 *.tar.gz
 
+# Ignore compiled JS files in TypeScript source directories
+api/**/*.js
+api/**/*.js.map
+
 #Ignore vscode AI rules
 .github\instructions\codacy.instructions.md
 
