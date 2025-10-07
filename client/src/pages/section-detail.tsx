@@ -14,7 +14,7 @@ import type { Section } from "@shared/schema";
 import { createSectionUrl } from "@/lib/slugify";
 
 export default function SectionDetail() {
-  const [, params] = useRoute("/section/:slug");
+  const [, params] = useRoute<{ slug: string }>("/section/:slug");
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
 
