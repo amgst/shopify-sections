@@ -1,4 +1,4 @@
-import { dbHelpers } from './db';
+import { storage } from './storage';
 
 async function seed() {
   try {
@@ -12,7 +12,7 @@ async function seed() {
     
     console.log('Inserting users...');
     for (const user of usersData) {
-      await dbHelpers.add('users', user);
+      await storage.createUser(user as any);
     }
     
     // Insert sample sections
@@ -66,7 +66,7 @@ async function seed() {
     
     console.log('Inserting sections...');
     for (const section of sectionsData) {
-      await dbHelpers.add('sections', section);
+      await storage.createSection(section as any);
     }
     
     console.log('Seeding completed successfully!');

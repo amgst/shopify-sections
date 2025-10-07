@@ -232,7 +232,6 @@ class MemoryStorage implements IStorage {
     const user: User = {
       id: randomUUID(),
       username: insertUser.username,
-      // @ts-expect-error password exists on InsertUser but not on User in shared types
       password: (insertUser as any).password,
       createdAt: now,
       updatedAt: now,
