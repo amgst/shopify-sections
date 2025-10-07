@@ -25,12 +25,14 @@ export const insertSectionSchema = z.object({
   downloads: z.number().int().nonnegative().optional(),
   isPremium: z.boolean().optional(),
   filters: z.array(z.string()).optional(),
+  slug: z.string().optional(), // Auto-generated from title if not provided
 });
 export type InsertSection = z.infer<typeof insertSectionSchema>;
 
 export type Section = {
   id: string;
   title: string;
+  slug: string;
   category: string;
   description: string;
   thumbnailUrl: string;

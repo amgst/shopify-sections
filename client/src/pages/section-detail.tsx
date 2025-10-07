@@ -11,19 +11,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Download, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Section } from "@shared/schema";
-import { createSectionUrl, extractIdFromSlug } from "@/lib/slugify";
 
 export default function SectionDetail() {
   const [, params] = useRoute<{ slug: string }>("/section/:slug");
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Extract the ID from the slug using the new robust extraction
-  const sectionId = params?.slug ? extractIdFromSlug(params.slug) : "";
+  // Use the slug directly (API supports both slug and ID lookup)
+  const slug = params?.slug || "";
 
   const { data: section, isLoading } = useQuery<Section>({
-    queryKey: ["/api/sections", sectionId],
-    enabled: !!sectionId,
+    queryKey: ["/api/sections", slug],
+    enabled: !!slug,
   });
 
   const { data: allSections } = useQuery<Section[]>({
@@ -31,7 +30,7 @@ export default function SectionDetail() {
   });
 
   const relatedSections = (allSections || [])
-    .filter(s => s.id !== sectionId && s.category === section?.category)
+    .filter(s => s.slug !== slug && s.category === section?.category)
     .slice(0, 3);
 
   // Update SEO meta tags when section loads

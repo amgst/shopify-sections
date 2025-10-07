@@ -8,6 +8,7 @@ import { createSectionUrl } from "@/lib/slugify";
 interface SectionCardProps {
   id: string;
   title: string;
+  slug?: string;
   category: string;
   description: string;
   thumbnailUrl: string;
@@ -18,15 +19,18 @@ interface SectionCardProps {
 export default function SectionCard({
   id,
   title,
+  slug,
   category,
   description,
   thumbnailUrl,
   downloads,
   isPremium = false,
 }: SectionCardProps) {
+  const sectionUrl = createSectionUrl({ id, title, slug });
+  
   return (
     <Card className="group overflow-hidden hover-elevate active-elevate-2 transition-all duration-200 hover:shadow-lg" data-testid={`card-section-${id}`}>
-      <Link href={`/section/${createSectionUrl(id, title)}`}>
+      <Link href={`/section/${sectionUrl}`}>
         <div className="relative aspect-video overflow-hidden bg-muted">
           <img
             src={thumbnailUrl}
@@ -47,7 +51,7 @@ export default function SectionCard({
           {category}
         </Badge>
         
-        <Link href={`/section/${createSectionUrl(id, title)}`}>
+        <Link href={`/section/${sectionUrl}`}>
           <h3 className="font-semibold text-xl text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-1" data-testid={`text-title-${id}`}>
             {title}
           </h3>
@@ -64,7 +68,7 @@ export default function SectionCard({
           <span>{downloads ? downloads.toLocaleString() : '0'} downloads</span>
         </div>
         
-        <Link href={`/section/${createSectionUrl(id, title)}`}>
+        <Link href={`/section/${sectionUrl}`}>
           <Button variant="ghost" size="sm" className="gap-1.5" data-testid={`button-preview-${id}`}>
             <Eye className="w-4 h-4" />
             Preview

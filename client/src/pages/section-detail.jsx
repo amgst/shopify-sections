@@ -10,23 +10,22 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Download, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { extractIdFromSlug } from "@/lib/slugify";
 
 export default function SectionDetail() {
     const [, params] = useRoute("/section/:slug");
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
-    // Extract the ID from the slug using the new robust extraction
-    const sectionId = (params === null || params === void 0 ? void 0 : params.slug) ? extractIdFromSlug(params.slug) : "";
+    // Use the slug directly (API supports both slug and ID lookup)
+    const slug = (params === null || params === void 0 ? void 0 : params.slug) || "";
     const { data: section, isLoading } = useQuery({
-        queryKey: ["/api/sections", sectionId],
-        enabled: !!sectionId,
+        queryKey: ["/api/sections", slug],
+        enabled: !!slug,
     });
     const { data: allSections } = useQuery({
         queryKey: ["/api/sections"],
     });
     const relatedSections = (allSections || [])
-        .filter(s => s.id !== sectionId && s.category === (section === null || section === void 0 ? void 0 : section.category))
+        .filter(s => s.slug !== slug && s.category === (section === null || section === void 0 ? void 0 : section.category))
         .slice(0, 3);
     
     // Update SEO meta tags when section loads
