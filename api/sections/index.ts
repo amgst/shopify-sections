@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { insertSectionSchema, type Section } from "../shared/schema";
-import { storage } from "../server/storage";
+import { insertSectionSchema, type Section } from "../shared/schema.js";
+import { storage } from "../server/storage.js";
 
 function genReqId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -99,8 +99,16 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   } catch (error: any) {
     console.error(`[sections] error req=${reqId}`, error);
     const message = error?.message || "Internal Server Error";
+    // Check if caller requested debug info or DEBUG_API is enabled
+    const url = new URL((req as any).url || '/', `http://localhost`);
+    const wantDebug = process.env.DEBUG_API === 'true' || url.searchParams.get('debug') === '1';
+
     res.statusCode = 500;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ message, name: error?.name }));
+    if (wantDebug) {
+      res.end(JSON.stringify({ message, name: error?.name, stack: error?.stack }));
+    } else {
+      res.end(JSON.stringify({ message, name: error?.name }));
+    }
   }
 }
