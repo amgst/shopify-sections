@@ -36,36 +36,36 @@ export default function SectionDetail() {
     if (section) {
       document.title = `${section.title} - ${section.category} | Shopify Sections`;
 
-      let metaDescription = document.querySelector('meta[name="description"]');
+      let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
       if (!metaDescription) {
-        metaDescription = document.createElement('meta');
-        metaDescription.setAttribute('name', 'description');
+        metaDescription = document.createElement("meta");
+        metaDescription.setAttribute("name", "description");
         document.head.appendChild(metaDescription);
       }
-      metaDescription.setAttribute('content', section.description);
+      metaDescription.setAttribute("content", section.description || "");
 
       const ogTags = [
-        { property: 'og:title', content: `${section.title} - Shopify Sections` },
-        { property: 'og:description', content: section.description },
-        { property: 'og:image', content: section.thumbnailUrl },
-        { property: 'og:type', content: 'website' },
+        { property: "og:title", content: `${section.title} - Shopify Sections` },
+        { property: "og:description", content: section.description },
+        { property: "og:image", content: section.thumbnailUrl },
+        { property: "og:type", content: "website" },
       ];
 
       ogTags.forEach(({ property, content }) => {
-        let tag = document.querySelector(`meta[property="${property}"]`);
+        let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
         if (!tag) {
-          tag = document.createElement('meta');
-          tag.setAttribute('property', property);
+          tag = document.createElement("meta");
+          tag.setAttribute("property", property);
           document.head.appendChild(tag);
         }
-        tag.setAttribute('content', content);
+        tag.setAttribute("content", content || "");
       });
     }
   }, [section]);
 
   const handleDownload = async () => {
     setIsDownloading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1200));
     setIsDownloading(false);
 
     toast({
@@ -189,44 +189,3 @@ export default function SectionDetail() {
     </div>
   );
 }
-                <Button
-                  size="lg"
-                  className="w-full gap-2"
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                  data-testid="button-download"
-                >
-                  {isDownloading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Downloading...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Download Section
-                    </>
-                  )}
-                </Button>
-
-                {relatedSections.length > 0 && (
-                  <div className="pt-6 border-t border-border">
-                    <h3 className="font-semibold text-foreground mb-4" data-testid="text-related-title">
-                      Related Sections
-                    </h3>
-                    <div className="space-y-4">
-                      {relatedSections.map((related) => (
-                        <SectionCard key={related.id} {...related} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Footer />
-      </div>
-    );
-  }
