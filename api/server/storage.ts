@@ -47,44 +47,7 @@ if (hasAllFirebaseEnv) {
     console.warn("Firebase Web SDK initialization failed. Falling back to MemoryStorage.", e);
   }
 } else {
-  const missing = requiredFirebaseKeys.filter((k) => !readEnv(k));
-  console.warn(
-    `Missing Firebase environment variables (${missing.join(", ")}). Using in-memory storage fallback for sections API.`,
-  );
-}
-
-// Helper function to generate slug from title
-function generateSlug(title: string): string {
-  return title
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/&/g, '-and-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-');
-}
-
-export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  
-  getAllSections(): Promise<Section[]>;
-  getSectionById(id: string): Promise<Section | undefined>;
-  getSectionBySlug(slug: string): Promise<Section | undefined>;
-  createSection(section: InsertSection): Promise<Section>;
-  // Deletion APIs
-  deleteSection(id: string): Promise<void>;
-  deleteAllSections(): Promise<number>;
-}
-
-// Mock storage implementation with predefined data
-// MockStorage removed
-// Firebase-backed storage implementation
-// FirebaseStorage removed
-class WebFirebaseStorage implements IStorage {
-  constructor(private fs: import("firebase/firestore").Firestore) {}
+    // No-op constructor: MemoryStorage starts empty unless data is added programmatically
 
   async getUser(id: string): Promise<User | undefined> {
     const ref = clientDoc(this.fs, "users", id);
