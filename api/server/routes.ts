@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertSectionSchema } from "../shared/schema";
+import { storage } from "./storage.js";
+import { insertSectionSchema } from "../shared/schema.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/sections", async (_req, res) => {
@@ -13,9 +13,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/sections/:id", async (req, res) => {
+  app.get("/api/sections/:idOrSlug", async (req, res) => {
     try {
-      const section = await storage.getSectionById(req.params.id);
+      // Try slug first, then fallback to ID for backward compatibility
+      let section = await storage.getSectionBySlug(req.params.idOrSlug);
+      if (!section) {
+        section = await storage.getSectionById(req.params.idOrSlug);
+      }
       if (!section) {
         return res.status(404).json({ message: "Section not found" });
       }

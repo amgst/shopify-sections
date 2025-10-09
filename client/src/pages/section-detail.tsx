@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
@@ -11,18 +11,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Download, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Section } from "@shared/schema";
-import { createSectionUrl } from "@/lib/slugify";
 
 export default function SectionDetail() {
-  const [, params] = useRoute("/section/:slug");
+  const [, params] = useRoute<{ slug: string }>("/section/:slug");
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
 
+<<<<<<< HEAD
   // Use the slug (SEO-friendly) to lookup the section via API query
   const slug = params?.slug ?? "";
 
   const { data: section, isLoading } = useQuery<Section>({
     queryKey: ["/api/sections", `?slug=${encodeURIComponent(slug)}`],
+=======
+  // Use the slug directly (API supports both slug and ID lookup)
+  const slug = params?.slug || "";
+
+  const { data: section, isLoading } = useQuery<Section>({
+    queryKey: ["/api/sections", slug],
+>>>>>>> 9476f457e3d59d60909d014f15ec4ced704b21d9
     enabled: !!slug,
   });
 
@@ -31,8 +38,46 @@ export default function SectionDetail() {
   });
 
   const relatedSections = (allSections || [])
+<<<<<<< HEAD
     .filter((s) => s.id !== section?.id && s.category === section?.category)
+=======
+    .filter(s => s.slug !== slug && s.category === section?.category)
+>>>>>>> 9476f457e3d59d60909d014f15ec4ced704b21d9
     .slice(0, 3);
+
+  // Update SEO meta tags when section loads
+  useEffect(() => {
+    if (section) {
+      document.title = `${section.title} - ${section.category} | Shopify Sections`;
+      
+      // Update or create meta description
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', section.description);
+
+      // Update or create Open Graph tags
+      const ogTags = [
+        { property: 'og:title', content: `${section.title} - Shopify Sections` },
+        { property: 'og:description', content: section.description },
+        { property: 'og:image', content: section.thumbnailUrl },
+        { property: 'og:type', content: 'website' },
+      ];
+
+      ogTags.forEach(({ property, content }) => {
+        let tag = document.querySelector(`meta[property="${property}"]`);
+        if (!tag) {
+          tag = document.createElement('meta');
+          tag.setAttribute('property', property);
+          document.head.appendChild(tag);
+        }
+        tag.setAttribute('content', content);
+      });
+    }
+  }, [section]);
 
   const handleDownload = async () => {
     setIsDownloading(true);

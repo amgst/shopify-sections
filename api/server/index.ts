@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { registerRoutes } from "./routes.js";
+import { setupVite, serveStatic, log } from "./vite.js";
 
 const app = express();
 app.use(express.json());
@@ -75,37 +75,12 @@ if (!isVercel) {
   (async () => {
     const server = await initPromise;
 
-    // Try a list of ports to avoid EADDRINUSE
-    const primary = parseInt(process.env.PORT || "3000", 10);
-    const portsToTry = [primary, 3001, 3002, 5174];
-    let listenedPort: number | undefined;
+    // Use PORT from environment or default to 5000 for Replit/Vercel
+    const port = parseInt(process.env.PORT || "5000", 10);
+    const host = process.env.HOST || "0.0.0.0";
 
-    for (const p of portsToTry) {
-      try {
-        await new Promise<void>((resolve, reject) => {
-          const onError = (err: any) => {
-            server.off("error", onError);
-            reject(err);
-          };
-          server.once("error", onError);
-          server.listen({ port: p, host: "localhost" }, () => {
-            server.off("error", onError);
-            resolve();
-          });
-        });
-        listenedPort = p;
-        break;
-      } catch (e: any) {
-        if (e?.code !== "EADDRINUSE") {
-          console.error("Failed to start server:", e);
-        }
-      }
-    }
-
-    if (!listenedPort) {
-      throw new Error("No available port to start server");
-    }
-
-    log(`serving on port ${listenedPort}`);
+    server.listen(port, host, () => {
+      log(`serving on port ${port}`);
+    });
   })();
 }

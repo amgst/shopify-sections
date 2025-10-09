@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Section, type InsertSection } from "../shared/schema";
+import { type User, type InsertUser, type Section, type InsertSection } from "../shared/schema.js";
 // firebase-admin removed
 import { initializeApp as initializeClientApp } from "firebase/app";
 import { initializeFirestore, collection, query, orderBy, getDocs, doc as clientDoc, getDoc as getClientDoc, addDoc, Timestamp as ClientTimestamp, deleteDoc } from "firebase/firestore";
@@ -51,6 +51,18 @@ if (hasAllFirebaseEnv) {
   );
 }
 
+// Helper function to generate slug from title
+function generateSlug(title: string): string {
+  return title
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/&/g, '-and-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+}
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -58,6 +70,7 @@ export interface IStorage {
   
   getAllSections(): Promise<Section[]>;
   getSectionById(id: string): Promise<Section | undefined>;
+  getSectionBySlug(slug: string): Promise<Section | undefined>;
   createSection(section: InsertSection): Promise<Section>;
   // Deletion APIs
   deleteSection(id: string): Promise<void>;
@@ -137,6 +150,7 @@ class WebFirebaseStorage implements IStorage {
       return {
         id: doc.id,
         title: data.title,
+        slug: data.slug || generateSlug(data.title),
         category: data.category,
         description: data.description,
         // support both `thumbnail` and `thumbnailUrl` field names
@@ -158,6 +172,32 @@ class WebFirebaseStorage implements IStorage {
     return {
       id: snap.id,
       title: data.title,
+      slug: data.slug || generateSlug(data.title),
+      category: data.category,
+      description: data.description,
+      thumbnailUrl: data.thumbnailUrl,
+      downloads: data.downloads ?? 0,
+      isPremium: !!data.isPremium,
+      filters: Array.isArray(data.filters) ? data.filters : [],
+      createdAt: data.createdAt instanceof ClientTimestamp ? data.createdAt.toDate() : new Date(data.createdAt),
+      updatedAt: data.updatedAt instanceof ClientTimestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
+    } as Section;
+  }
+
+  async getSectionBySlug(slug: string): Promise<Section | undefined> {
+    const q = query(collection(this.fs, "sections"));
+    const snap = await getDocs(q);
+    const doc = snap.docs.find((d) => {
+      const data: any = d.data();
+      const docSlug = data.slug || generateSlug(data.title);
+      return docSlug === slug;
+    });
+    if (!doc) return undefined;
+    const data: any = doc.data();
+    return {
+      id: doc.id,
+      title: data.title,
+      slug: data.slug || generateSlug(data.title),
       category: data.category,
       description: data.description,
       thumbnailUrl: data.thumbnail ?? data.thumbnailUrl ?? '',
@@ -171,8 +211,10 @@ class WebFirebaseStorage implements IStorage {
 
   async createSection(insertSection: InsertSection): Promise<Section> {
     const now = new Date();
+    const slug = insertSection.slug || generateSlug(insertSection.title);
     const payload = {
       title: insertSection.title,
+      slug: slug,
       category: insertSection.category,
       description: insertSection.description,
       thumbnailUrl: insertSection.thumbnailUrl,
@@ -186,7 +228,11 @@ class WebFirebaseStorage implements IStorage {
     const docRef = await addDoc(colRef, payload);
     return {
       id: docRef.id,
-      ...insertSection,
+      title: insertSection.title,
+      slug: slug,
+      category: insertSection.category,
+      description: insertSection.description,
+      thumbnailUrl: insertSection.thumbnailUrl,
       downloads: insertSection.downloads ?? 0,
       isPremium: !!insertSection.isPremium,
       filters: insertSection.filters ?? [],
@@ -249,11 +295,20 @@ class MemoryStorage implements IStorage {
     return this.sections.get(id);
   }
 
+  async getSectionBySlug(slug: string): Promise<Section | undefined> {
+    for (const section of this.sections.values()) {
+      if (section.slug === slug) return section;
+    }
+    return undefined;
+  }
+
   async createSection(insertSection: InsertSection): Promise<Section> {
     const now = new Date();
+    const slug = insertSection.slug || generateSlug(insertSection.title);
     const section: Section = {
       id: randomUUID(),
       title: insertSection.title,
+      slug: slug,
       category: insertSection.category,
       description: insertSection.description,
       thumbnailUrl: insertSection.thumbnailUrl,

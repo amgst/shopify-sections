@@ -14,11 +14,21 @@ export function slugify(text) {
         .replace(/\-\-+/g, '-'); // Replace multiple - with single -
 }
 /**
- * Creates a URL for a section using its ID and title
- * @param id The section ID
- * @param title The section title
- * @returns A URL-friendly string in the format "id-title-slug"
+ * Creates a URL for a section using section data
+ * @param section Section object with slug or id/title
+ * @returns A URL-friendly string (just the slug)
  */
-export function createSectionUrl(id, title) {
-    return `${id}-${slugify(title)}`;
+export function createSectionUrl(section) {
+    // If section has a slug, use it directly
+    if (section.slug) {
+        return section.slug;
+    }
+    // Fallback: if passed id and title separately (old format)
+    if (typeof section === 'string') {
+        const id = section;
+        const title = arguments[1];
+        return `${slugify(title)}--${id}`;
+    }
+    // Fallback: generate from title
+    return slugify(section.title);
 }
