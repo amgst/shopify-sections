@@ -15,27 +15,12 @@ export function slugify(text: string): string {
 }
 
 /**
- * Creates a URL for a section using section data
- * @param section Section object with slug or id/title
- * @returns A URL-friendly string (just the slug)
+ * Creates a URL for a section from id and title
+ * @param id section id (unused for SEO-only slug but kept for backwards compatibility)
+ * @param title section title
+ * @returns slugified title
  */
-<<<<<<< HEAD
 export function createSectionUrl(id: string, title: string): string {
   // For SEO-friendly URLs we return only the slugified title (no id)
   return slugify(title);
-=======
-export function createSectionUrl(section: any): string {
-  // If section has a slug, use it directly
-  if (section.slug) {
-    return section.slug;
-  }
-  // Fallback: if passed id and title separately (old format)
-  if (typeof section === 'string') {
-    const id = section;
-    const title = arguments[1] as string;
-    return `${slugify(title)}--${id}`;
-  }
-  // Fallback: generate from title
-  return slugify(section.title);
->>>>>>> 9476f457e3d59d60909d014f15ec4ced704b21d9
 }
