@@ -21,5 +21,6 @@ export function slugify(text: string): string {
  * @returns A URL-friendly string in the format "id-title-slug"
  */
 export function createSectionUrl(id: string, title: string): string {
-  return `${id}-${slugify(title)}`;
+  // For SEO-friendly URLs we return only the slugified title (no id)
+  return slugify(title);
 }

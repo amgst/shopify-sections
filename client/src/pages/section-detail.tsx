@@ -18,12 +18,12 @@ export default function SectionDetail() {
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Extract the ID from the slug (format: "id-title-slug")
-  const sectionId = params?.slug ? params.slug.split('-')[0] : "";
+  // Use the slug (SEO-friendly) to lookup the section via API query
+  const slug = params?.slug ?? "";
 
   const { data: section, isLoading } = useQuery<Section>({
-    queryKey: ["/api/sections", sectionId],
-    enabled: !!sectionId,
+    queryKey: ["/api/sections", `?slug=${encodeURIComponent(slug)}`],
+    enabled: !!slug,
   });
 
   const { data: allSections } = useQuery<Section[]>({
@@ -31,7 +31,7 @@ export default function SectionDetail() {
   });
 
   const relatedSections = (allSections || [])
-    .filter(s => s.id !== sectionId && s.category === section?.category)
+    .filter((s) => s.id !== section?.id && s.category === section?.category)
     .slice(0, 3);
 
   const handleDownload = async () => {

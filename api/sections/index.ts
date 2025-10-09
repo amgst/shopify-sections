@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { insertSectionSchema } from "./shared/schema";
-import { storage } from "./server/storage";
+import { insertSectionSchema, type Section } from "../shared/schema";
+import { storage } from "../server/storage";
 
 function genReqId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -35,7 +35,36 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   try {
     if (method === "GET") {
       console.log(`[sections] GET start req=${reqId}`);
+      const url = new URL((req as any).url || '/', `http://localhost`);
+      const slug = url.searchParams.get('slug');
       const sections = await storage.getAllSections();
+
+      if (slug) {
+        // simple slugify helper to match client-side slugify
+        const slugify = (text: string) =>
+          text
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/&/g, '-and-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-');
+
+  const found = (sections as Section[]).find((s) => slugify(s.title) === slug);
+        if (!found) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ message: 'Not Found' }));
+          return;
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(found));
+        return;
+      }
+
       console.log(`[sections] GET ok req=${reqId} count=${sections.length}`);
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
