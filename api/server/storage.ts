@@ -266,44 +266,7 @@ class MemoryStorage implements IStorage {
   private sections = new Map<string, Section>();
 
   constructor() {
-    // If seed file exists at runtime, load it so non-Firebase deployments (e.g., Vercel) can serve data
-    try {
-      // Use relative path from project root (Vercel places function at /var/task)
-      // Accept both ./data/seed-sections.json and /var/task/data/seed-sections.json
-      const possiblePaths = [
-        path.resolve(process.cwd(), 'data', 'seed-sections.json'),
-        path.resolve(__dirname, '..', '..', 'data', 'seed-sections.json'),
-      ];
-      for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
-          const raw = fs.readFileSync(p, 'utf8');
-          const arr = JSON.parse(raw);
-          if (Array.isArray(arr)) {
-            for (const s of arr) {
-              const id = s.id || randomUUID();
-              const section: Section = {
-                id,
-                title: s.title,
-                slug: s.slug || generateSlug(s.title),
-                category: s.category,
-                description: s.description,
-                thumbnailUrl: s.thumbnailUrl || s.thumbnail || '',
-                downloads: s.downloads ?? 0,
-                isPremium: !!s.isPremium,
-                filters: Array.isArray(s.filters) ? s.filters : [],
-                createdAt: s.createdAt ? new Date(s.createdAt) : new Date(),
-                updatedAt: s.updatedAt ? new Date(s.updatedAt) : new Date(),
-              };
-              this.sections.set(id, section);
-            }
-            console.log(`MemoryStorage: loaded ${arr.length} seed sections from ${p}`);
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('MemoryStorage: failed to load seed sections', e);
-    }
+    // No runtime seeding; MemoryStorage starts empty by default.
   }
 
   async getUser(id: string): Promise<User | undefined> {
