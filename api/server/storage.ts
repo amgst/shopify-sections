@@ -47,7 +47,12 @@ if (hasAllFirebaseEnv) {
     console.warn("Firebase Web SDK initialization failed. Falling back to MemoryStorage.", e);
   }
 } else {
-    // No-op constructor: MemoryStorage starts empty unless data is added programmatically
+  // No Firebase environment detected; don't initialize webFirestore. We'll fall back to MemoryStorage below.
+}
+
+// Firebase-backed storage implementation
+class WebFirebaseStorage implements IStorage {
+  constructor(private fs: import("firebase/firestore").Firestore) {}
 
   async getUser(id: string): Promise<User | undefined> {
     const ref = clientDoc(this.fs, "users", id);
