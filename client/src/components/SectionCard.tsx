@@ -26,7 +26,7 @@ export default function SectionCard({
   downloads,
   isPremium = false,
 }: SectionCardProps) {
-  const sectionUrl = createSectionUrl({ id, title, slug });
+  const sectionUrl = createSectionUrl(id, title);
   
   return (
     <Card className="group overflow-hidden hover-elevate active-elevate-2 transition-all duration-200 hover:shadow-lg" data-testid={`card-section-${id}`}>
