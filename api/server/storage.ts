@@ -50,6 +50,32 @@ if (hasAllFirebaseEnv) {
   // No Firebase environment detected; don't initialize webFirestore. We'll fall back to MemoryStorage below.
 }
 
+// Helper function to generate slug from title
+function generateSlug(title: string): string {
+  return title
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/&/g, '-and-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+}
+
+export interface IStorage {
+  getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
+  getAllSections(): Promise<Section[]>;
+  getSectionById(id: string): Promise<Section | undefined>;
+  getSectionBySlug(slug: string): Promise<Section | undefined>;
+  createSection(section: InsertSection): Promise<Section>;
+  // Deletion APIs
+  deleteSection(id: string): Promise<void>;
+  deleteAllSections(): Promise<number>;
+}
+
 // Firebase-backed storage implementation
 class WebFirebaseStorage implements IStorage {
   constructor(private fs: import("firebase/firestore").Firestore) {}
