@@ -20,7 +20,7 @@ export default function SectionDetail() {
   const slug = params?.slug ?? "";
 
   const { data: section, isLoading } = useQuery<Section>({
-    queryKey: ["/api/sections", `?slug=${encodeURIComponent(slug)}`],
+    queryKey: ["/api/sections", slug],
     enabled: !!slug,
   });
 
