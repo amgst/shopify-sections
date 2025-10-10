@@ -15,10 +15,10 @@ export function slugify(text: string): string {
 }
 
 /**
- * Creates a URL for a section from id and title
+ * Creates a SEO-friendly URL for a section
  * @param id section id (unused for SEO-only slug but kept for backwards compatibility)
  * @param title section title
- * @returns slugified title
+ * @returns SEO-friendly URL slug
  */
 export function createSectionUrl(id: string, title: string): string {
   // For SEO-friendly URLs we return only the slugified title (no id)

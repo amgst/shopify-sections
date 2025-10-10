@@ -34,8 +34,10 @@ export default function SectionDetail() {
 
   useEffect(() => {
     if (section) {
+      // Set page title
       document.title = `${section.title} - ${section.category} | Shopify Sections`;
 
+      // Set meta description
       let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
       if (!metaDescription) {
         metaDescription = document.createElement("meta");
@@ -44,11 +46,23 @@ export default function SectionDetail() {
       }
       metaDescription.setAttribute("content", section.description || "");
 
+      // Set canonical URL for SEO (prevents duplicate content issues)
+      const canonicalUrl = `${window.location.origin}/section/${section.slug}`;
+      let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonicalLink) {
+        canonicalLink = document.createElement("link");
+        canonicalLink.setAttribute("rel", "canonical");
+        document.head.appendChild(canonicalLink);
+      }
+      canonicalLink.setAttribute("href", canonicalUrl);
+
+      // Set Open Graph tags for social media sharing
       const ogTags = [
         { property: "og:title", content: `${section.title} - Shopify Sections` },
         { property: "og:description", content: section.description },
         { property: "og:image", content: section.thumbnailUrl },
         { property: "og:type", content: "website" },
+        { property: "og:url", content: canonicalUrl },
       ];
 
       ogTags.forEach(({ property, content }) => {
