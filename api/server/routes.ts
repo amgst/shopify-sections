@@ -15,10 +15,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/sections/:idOrSlug", async (req, res) => {
     try {
-      // Try slug first, then fallback to ID for backward compatibility
-      let section = await storage.getSectionBySlug(req.params.idOrSlug);
+      // Try ID first (most reliable), then fallback to slug for backward compatibility
+      let section = await storage.getSectionById(req.params.idOrSlug);
       if (!section) {
-        section = await storage.getSectionById(req.params.idOrSlug);
+        section = await storage.getSectionBySlug(req.params.idOrSlug);
       }
       if (!section) {
         return res.status(404).json({ message: "Section not found" });
