@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,38 @@ import { Mail, MessageSquare, Send } from "lucide-react";
 
 export default function Contact() {
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Set page title
+    document.title = "Contact Us - Shopify Sections";
+
+    // Set meta description
+    let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!metaDescription) {
+      metaDescription = document.createElement("meta");
+      metaDescription.setAttribute("name", "description");
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute("content", "Get in touch with Shopify Sections. Have questions, suggestions, or need help? Contact us and we'll respond within 24 hours.");
+
+    // Set Open Graph tags
+    const ogTags = [
+      { property: "og:title", content: "Contact Us - Shopify Sections" },
+      { property: "og:description", content: "Get in touch with us. We'd love to hear from you." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: `${window.location.origin}/contact` },
+    ];
+
+    ogTags.forEach(({ property, content }) => {
+      let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute("property", property);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute("content", content || "");
+    });
+  }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",

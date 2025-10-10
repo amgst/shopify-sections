@@ -37,7 +37,19 @@ export default function Header({ onSearch, searchQuery = "" }: HeaderProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            <nav className="hidden lg:flex items-center gap-6 mr-2">
+              <Link href="/about" data-testid="link-header-about">
+                <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  About
+                </span>
+              </Link>
+              <Link href="/contact" data-testid="link-header-contact">
+                <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  Contact
+                </span>
+              </Link>
+            </nav>
             <Badge variant="secondary" className="hidden sm:flex items-center gap-1.5" data-testid="badge-downloads">
               <Download className="w-3.5 h-3.5" />
               <span className="font-medium">1.2k Downloads</span>
@@ -50,7 +62,20 @@ export default function Header({ onSearch, searchQuery = "" }: HeaderProps) {
           </div>
         </div>
 
+        {/* Mobile Navigation */}
         <div className="md:hidden mt-4">
+          <div className="flex items-center gap-4 mb-3">
+            <Link href="/about" data-testid="link-mobile-about">
+              <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                About
+              </span>
+            </Link>
+            <Link href="/contact" data-testid="link-mobile-contact">
+              <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                Contact
+              </span>
+            </Link>
+          </div>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input

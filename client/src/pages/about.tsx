@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -6,6 +7,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Code, Sparkles, Users, Zap } from "lucide-react";
 
 export default function About() {
+  useEffect(() => {
+    // Set page title
+    document.title = "About Us - Shopify Sections";
+
+    // Set meta description
+    let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!metaDescription) {
+      metaDescription = document.createElement("meta");
+      metaDescription.setAttribute("name", "description");
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute("content", "Learn about Shopify Sections - your premier destination for high-quality, ready-to-use Shopify section templates. Helping developers build beautiful online stores faster.");
+
+    // Set Open Graph tags
+    const ogTags = [
+      { property: "og:title", content: "About Us - Shopify Sections" },
+      { property: "og:description", content: "Your premier destination for high-quality, ready-to-use Shopify section templates." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: `${window.location.origin}/about` },
+    ];
+
+    ogTags.forEach(({ property, content }) => {
+      let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute("property", property);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute("content", content || "");
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -109,13 +142,13 @@ export default function About() {
               Explore our collection of Shopify sections and start building your dream store today.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
-              <Link href="/browse" data-testid="link-browse-sections">
-                <Button size="lg" data-testid="button-browse-sections">
+              <Link href="/browse" data-testid="link-about-cta-browse">
+                <Button size="lg" data-testid="button-about-cta-browse">
                   Browse Sections
                 </Button>
               </Link>
-              <Link href="/contact" data-testid="link-contact">
-                <Button size="lg" variant="outline" data-testid="button-contact">
+              <Link href="/contact" data-testid="link-about-cta-contact">
+                <Button size="lg" variant="outline" data-testid="button-about-cta-contact">
                   Get in Touch
                 </Button>
               </Link>
