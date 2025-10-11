@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, ArrowLeft } from "lucide-react";
+import { Download, ArrowLeft, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Section } from "@shared/schema";
 
@@ -158,19 +158,29 @@ export default function SectionDetail() {
                 </p>
               </div>
 
-              <Button size="lg" className="w-full gap-2" onClick={handleDownload} disabled={isDownloading} data-testid="button-download">
-                {isDownloading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    Download Section
-                  </>
+              <div className="flex flex-col gap-3">
+                {section.demoUrl && (
+                  <a href={section.demoUrl} target="_blank" rel="noopener noreferrer">
+                    <Button size="lg" variant="outline" className="w-full gap-2">
+                      <Eye className="w-4 h-4" />
+                      Live Demo
+                    </Button>
+                  </a>
                 )}
-              </Button>
+                <Button size="lg" className="w-full gap-2" onClick={handleDownload} disabled={isDownloading} data-testid="button-download">
+                  {isDownloading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Download Section
+                    </>
+                  )}
+                </Button>
+              </div>
 
               {relatedSections.length > 0 && (
                 <div className="pt-6 border-t border-border">

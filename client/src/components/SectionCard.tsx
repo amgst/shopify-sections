@@ -14,6 +14,7 @@ interface SectionCardProps {
   thumbnailUrl: string;
   downloads: number;
   isPremium?: boolean;
+  demoUrl?: string;
 }
 
 export default function SectionCard({
@@ -25,6 +26,7 @@ export default function SectionCard({
   thumbnailUrl,
   downloads,
   isPremium = false,
+  demoUrl,
 }: SectionCardProps) {
   const sectionUrl = createSectionUrl(id, title);
   
@@ -68,12 +70,22 @@ export default function SectionCard({
           <span>{downloads ? downloads.toLocaleString() : '0'} downloads</span>
         </div>
         
-        <Link href={`/section/${sectionUrl}`}>
-          <Button variant="ghost" size="sm" className="gap-1.5" data-testid={`button-preview-${id}`}>
-            <Eye className="w-4 h-4" />
-            Preview
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          {demoUrl && (
+            <a href={demoUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Eye className="w-4 h-4" />
+                Demo
+              </Button>
+            </a>
+          )}
+          <Link href={`/section/${sectionUrl}`}>
+            <Button variant="ghost" size="sm" className="gap-1.5" data-testid={`button-preview-${id}`}>
+              <Eye className="w-4 h-4" />
+              Preview
+            </Button>
+          </Link>
+        </div>
       </CardFooter>
     </Card>
   );
