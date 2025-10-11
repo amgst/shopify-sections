@@ -22,6 +22,7 @@ export const insertSectionSchema = z.object({
   category: z.string().min(1, "category is required"),
   description: z.string().min(1, "description is required"),
   thumbnailUrl: z.string().min(1, "thumbnailUrl is required"),
+  demoLink: z.string().url().optional(),
   downloads: z.number().int().nonnegative().optional(),
   isPremium: z.boolean().optional(),
   filters: z.array(z.string()).optional(),
@@ -36,6 +37,7 @@ export type Section = {
   category: string;
   description: string;
   thumbnailUrl: string;
+  demoLink?: string;
   downloads: number;
   isPremium: boolean;
   filters: string[];
