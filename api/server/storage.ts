@@ -152,6 +152,7 @@ class WebFirebaseStorage implements IStorage {
         description: data.description,
         // support both `thumbnail` and `thumbnailUrl` field names
         thumbnailUrl: data.thumbnail ?? data.thumbnailUrl ?? '',
+        demoLink: data.demoLink,
         downloads: data.downloads ?? 0,
         isPremium: !!data.isPremium,
         filters: Array.isArray(data.filters) ? data.filters : [],
@@ -173,6 +174,7 @@ class WebFirebaseStorage implements IStorage {
       category: data.category,
       description: data.description,
       thumbnailUrl: data.thumbnailUrl,
+      demoLink: data.demoLink,
       downloads: data.downloads ?? 0,
       isPremium: !!data.isPremium,
       filters: Array.isArray(data.filters) ? data.filters : [],
@@ -198,6 +200,7 @@ class WebFirebaseStorage implements IStorage {
       category: data.category,
       description: data.description,
       thumbnailUrl: data.thumbnail ?? data.thumbnailUrl ?? '',
+      demoLink: data.demoLink,
       downloads: data.downloads ?? 0,
       isPremium: !!data.isPremium,
       filters: Array.isArray(data.filters) ? data.filters : [],

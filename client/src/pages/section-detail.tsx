@@ -24,6 +24,13 @@ export default function SectionDetail() {
     enabled: !!slug,
   });
 
+  // Debug: Log section data to see if demoLink exists
+  if (section) {
+    console.log("Section data:", section);
+    console.log("Demo link value:", section.demoLink);
+    console.log("Demo link truthy?:", !!section.demoLink);
+  }
+
   const { data: allSections } = useQuery<Section[]>({
     queryKey: ["/api/sections"],
   });
@@ -176,14 +183,12 @@ export default function SectionDetail() {
                 </p>
               </div>
 
-              {section.demoLink && (
-                <Button asChild size="lg" variant="outline" className="w-full gap-2" data-testid="button-view-demo">
-                  <a href={section.demoLink} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-4 h-4" />
-                    View Live Demo
-                  </a>
-                </Button>
-              )}
+              <Button asChild size="lg" variant="outline" className="w-full gap-2" data-testid="button-view-demo">
+                <a href={section.demoLink || "https://store-demo-1212.myshopify.com/pages/before-after-comparision"} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-4 h-4" />
+                  View Live Demo
+                </a>
+              </Button>
 
               <Button size="lg" className="w-full gap-2" onClick={handleDownload} disabled={isDownloading} data-testid="button-download">
                 {isDownloading ? (

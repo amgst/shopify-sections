@@ -1,5 +1,26 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { storage } from "../server/storage.js";
+import { updateSectionSchema } from "../shared/schema.js";
+
+async function readJson(req: IncomingMessage): Promise<any> {
+  const anyReq = req as any;
+  if (typeof anyReq.body !== "undefined") return anyReq.body;
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req
+      .on("data", (chunk) => chunks.push(Buffer.from(chunk)))
+      .on("end", () => {
+        try {
+          const raw = Buffer.concat(chunks).toString("utf8");
+          if (!raw) return resolve({});
+          resolve(JSON.parse(raw));
+        } catch (e) {
+          reject(e);
+        }
+      })
+      .on("error", reject);
+  });
+}
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   const method = (req as any).method || "GET";
@@ -32,6 +53,16 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
+    if (method === "PATCH") {
+      const body = await readJson(req);
+      const validatedData = updateSectionSchema.parse({ ...body, id: idOrSlug });
+      const updated = await storage.updateSection(validatedData);
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify(updated));
+      return;
+    }
+
     if (method === "DELETE") {
       await storage.deleteSection(idOrSlug);
       res.statusCode = 204;
@@ -40,7 +71,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     }
 
     res.statusCode = 405;
-    res.setHeader("Allow", "GET,DELETE");
+    res.setHeader("Allow", "GET,PATCH,DELETE");
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({ message: "Method Not Allowed" }));
   } catch (error: any) {
