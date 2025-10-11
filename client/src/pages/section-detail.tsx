@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, ArrowLeft } from "lucide-react";
+import { Download, ArrowLeft, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Section } from "@shared/schema";
 
@@ -171,6 +171,15 @@ export default function SectionDetail() {
                   {section.downloads.toLocaleString()} downloads
                 </p>
               </div>
+
+              {section.demoLink && (
+                <Button asChild size="lg" variant="outline" className="w-full gap-2" data-testid="button-view-demo">
+                  <a href={section.demoLink} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="w-4 h-4" />
+                    View Live Demo
+                  </a>
+                </Button>
+              )}
 
               <Button size="lg" className="w-full gap-2" onClick={handleDownload} disabled={isDownloading} data-testid="button-download">
                 {isDownloading ? (
