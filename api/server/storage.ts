@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Section, type InsertSection } from "../shared/schema.js";
+import { type User, type InsertUser, type Section, type InsertSection, type UpdateSection } from "../shared/schema.js";
 // firebase-admin removed
 import { initializeApp as initializeClientApp } from "firebase/app";
 import { initializeFirestore, collection, query, orderBy, getDocs, doc as clientDoc, getDoc as getClientDoc, addDoc, Timestamp as ClientTimestamp, deleteDoc } from "firebase/firestore";
@@ -71,6 +71,7 @@ export interface IStorage {
   getSectionById(id: string): Promise<Section | undefined>;
   getSectionBySlug(slug: string): Promise<Section | undefined>;
   createSection(section: InsertSection): Promise<Section>;
+  updateSection(update: UpdateSection): Promise<Section>;
   // Deletion APIs
   deleteSection(id: string): Promise<void>;
   deleteAllSections(): Promise<number>;
