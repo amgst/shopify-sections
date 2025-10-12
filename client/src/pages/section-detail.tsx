@@ -113,12 +113,21 @@ export default function SectionDetail() {
             </div>
 
             <div className="bg-card border border-card-border rounded-xl p-6">
+<<<<<<< HEAD
               <h2 className="text-xl font-semibold text-foreground mb-4" data-testid="text-description-title">
                 Description
               </h2>
               <p className="text-muted-foreground leading-relaxed" data-testid="text-full-description">
                 {section.description}
               </p>
+=======
+              <h2 className="text-xl font-semibold text-foreground mb-4" data-testid="text-description-title">Description</h2>
+              <div className="text-muted-foreground leading-relaxed space-y-4" data-testid="text-full-description">
+                {section.description.split('\n\n').map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </div>
+>>>>>>> cc2ab17ce7b434f1082100db5200b414e4a1b0df
             </div>
           </div>
 

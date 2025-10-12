@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Section, type InsertSection } from "../shared/schema.js";
+import { type User, type InsertUser, type Section, type InsertSection, type UpdateSection } from "../shared/schema.js";
 // firebase-admin removed
 import { initializeApp as initializeClientApp } from "firebase/app";
-import { initializeFirestore, collection, query, orderBy, getDocs, doc as clientDoc, getDoc as getClientDoc, addDoc, Timestamp as ClientTimestamp, deleteDoc } from "firebase/firestore";
+import { initializeFirestore, collection, query, orderBy, getDocs, doc as clientDoc, getDoc as getClientDoc, addDoc, updateDoc, Timestamp as ClientTimestamp, deleteDoc } from "firebase/firestore";
 import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -71,6 +71,7 @@ export interface IStorage {
   getSectionById(id: string): Promise<Section | undefined>;
   getSectionBySlug(slug: string): Promise<Section | undefined>;
   createSection(section: InsertSection): Promise<Section>;
+  updateSection(update: UpdateSection): Promise<Section>;
   // Deletion APIs
   deleteSection(id: string): Promise<void>;
   deleteAllSections(): Promise<number>;
@@ -151,6 +152,7 @@ class WebFirebaseStorage implements IStorage {
         description: data.description,
         // support both `thumbnail` and `thumbnailUrl` field names
         thumbnailUrl: data.thumbnail ?? data.thumbnailUrl ?? '',
+        demoLink: data.demoLink,
         downloads: data.downloads ?? 0,
         isPremium: !!data.isPremium,
         filters: Array.isArray(data.filters) ? data.filters : [],
@@ -172,6 +174,7 @@ class WebFirebaseStorage implements IStorage {
       category: data.category,
       description: data.description,
       thumbnailUrl: data.thumbnailUrl,
+      demoLink: data.demoLink,
       downloads: data.downloads ?? 0,
       isPremium: !!data.isPremium,
       filters: Array.isArray(data.filters) ? data.filters : [],
@@ -197,6 +200,7 @@ class WebFirebaseStorage implements IStorage {
       category: data.category,
       description: data.description,
       thumbnailUrl: data.thumbnail ?? data.thumbnailUrl ?? '',
+      demoLink: data.demoLink,
       downloads: data.downloads ?? 0,
       isPremium: !!data.isPremium,
       filters: Array.isArray(data.filters) ? data.filters : [],
@@ -225,6 +229,7 @@ class WebFirebaseStorage implements IStorage {
       category: insertSection.category,
       description: insertSection.description,
       thumbnailUrl: insertSection.thumbnailUrl,
+      demoLink: insertSection.demoLink,
       downloads: insertSection.downloads ?? 0,
       isPremium: !!insertSection.isPremium,
       filters: insertSection.filters ?? [],
@@ -240,12 +245,40 @@ class WebFirebaseStorage implements IStorage {
       category: insertSection.category,
       description: insertSection.description,
       thumbnailUrl: insertSection.thumbnailUrl,
+      demoLink: insertSection.demoLink,
       downloads: insertSection.downloads ?? 0,
       isPremium: !!insertSection.isPremium,
       filters: insertSection.filters ?? [],
       createdAt: now,
       updatedAt: now,
     } as Section;
+  }
+
+  async updateSection(update: UpdateSection): Promise<Section> {
+    const existing = await this.getSectionById(update.id);
+    if (!existing) {
+      throw new Error(`Section with id ${update.id} not found`);
+    }
+
+    const now = new Date();
+    const updatePayload: any = {
+      updatedAt: ClientTimestamp.fromDate(now),
+    };
+
+    if (update.title !== undefined) updatePayload.title = update.title;
+    if (update.category !== undefined) updatePayload.category = update.category;
+    if (update.description !== undefined) updatePayload.description = update.description;
+    if (update.thumbnailUrl !== undefined) updatePayload.thumbnailUrl = update.thumbnailUrl;
+    if (update.demoLink !== undefined) updatePayload.demoLink = update.demoLink;
+    if (update.downloads !== undefined) updatePayload.downloads = update.downloads;
+    if (update.isPremium !== undefined) updatePayload.isPremium = update.isPremium;
+    if (update.filters !== undefined) updatePayload.filters = update.filters;
+    if (update.slug !== undefined) updatePayload.slug = update.slug;
+
+    const ref = clientDoc(this.fs, "sections", update.id);
+    await updateDoc(ref, updatePayload);
+
+    return this.getSectionById(update.id) as Promise<Section>;
   }
 
   async deleteSection(id: string): Promise<void> {
@@ -333,6 +366,7 @@ class MemoryStorage implements IStorage {
       category: insertSection.category,
       description: insertSection.description,
       thumbnailUrl: insertSection.thumbnailUrl,
+      demoLink: insertSection.demoLink,
       downloads: insertSection.downloads ?? 0,
       isPremium: !!insertSection.isPremium,
       filters: insertSection.filters ?? [],
@@ -341,6 +375,25 @@ class MemoryStorage implements IStorage {
     };
     this.sections.set(section.id, section);
     return section;
+  }
+
+  async updateSection(update: UpdateSection): Promise<Section> {
+    const existing = this.sections.get(update.id);
+    if (!existing) {
+      throw new Error(`Section with id ${update.id} not found`);
+    }
+
+    const now = new Date();
+    const updated: Section = {
+      ...existing,
+      ...update,
+      id: existing.id,
+      createdAt: existing.createdAt,
+      updatedAt: now,
+    };
+
+    this.sections.set(update.id, updated);
+    return updated;
   }
 
   async deleteSection(id: string): Promise<void> {

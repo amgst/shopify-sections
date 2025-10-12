@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
-import { insertSectionSchema } from "../shared/schema.js";
+import { insertSectionSchema, updateSectionSchema } from "../shared/schema.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/sections", async (_req, res) => {
@@ -34,6 +34,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertSectionSchema.parse(req.body);
       const section = await storage.createSection(validatedData);
       res.status(201).json(section);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/sections/:id", async (req, res) => {
+    try {
+      const validatedData = updateSectionSchema.parse({ ...req.body, id: req.params.id });
+      const section = await storage.updateSection(validatedData);
+      res.json(section);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }

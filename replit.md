@@ -6,13 +6,17 @@ A full-stack web application for showcasing and managing Shopify section templat
 
 This project is a Shopify sections showcase platform where users can browse, view, and download Shopify Liquid section templates. Built with React, TypeScript, Express, and Firebase Firestore.
 
-## Recent Changes (October 10, 2025)
+## Recent Changes (October 11, 2025)
 
 - ✅ Successfully migrated project to Replit environment
 - ✅ Updated Vercel configuration for proper serverless deployment
 - ✅ Fixed API routing to handle both slugs and IDs
 - ✅ Created comprehensive deployment documentation (VERCEL_DEPLOYMENT.md)
 - ✅ Configured workflow for development server
+- ✅ Implemented multi-paragraph description rendering (splits on `\n\n`)
+- ✅ Added demo link button feature with external tab opening
+- ✅ Extended schema with `demoLink` field and update infrastructure
+- ✅ Added PATCH routes for section updates (Express + serverless)
 
 ## Project Architecture
 

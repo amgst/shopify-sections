@@ -31,6 +31,11 @@ export const insertSectionSchema = z.object({
 });
 export type InsertSection = z.infer<typeof insertSectionSchema>;
 
+export const updateSectionSchema = insertSectionSchema.partial().extend({
+  id: z.string().min(1, "id is required"),
+});
+export type UpdateSection = z.infer<typeof updateSectionSchema>;
+
 export type Section = {
   id: string;
   title: string;
