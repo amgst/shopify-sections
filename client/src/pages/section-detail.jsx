@@ -15,6 +15,8 @@ export default function SectionDetail() {
     const [, params] = useRoute("/section/:slug");
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
+    const [iframeLoaded, setIframeLoaded] = useState(false);
+    const [iframeBlocked, setIframeBlocked] = useState(false);
     // Use the slug directly (API supports both slug and ID lookup)
     const slug = (params === null || params === void 0 ? void 0 : params.slug) || "";
     const { data: section, isLoading } = useQuery({
@@ -27,7 +29,16 @@ export default function SectionDetail() {
     const relatedSections = (allSections || [])
         .filter(s => s.slug !== slug && s.category === (section === null || section === void 0 ? void 0 : section.category))
         .slice(0, 3);
-    
+
+    const demoSrc = (section === null || section === void 0 ? void 0 : section.demoUrl) || (section === null || section === void 0 ? void 0 : section.demoLink) || "";
+
+    useEffect(() => {
+        if (!demoSrc) return;
+        const id = setTimeout(() => {
+            if (!iframeLoaded) setIframeBlocked(true);
+        }, 2000);
+        return () => clearTimeout(id);
+    }, [demoSrc, iframeLoaded]);
     // Update SEO meta tags when section loads
     useEffect(() => {
         if (section) {
@@ -136,6 +147,41 @@ export default function SectionDetail() {
                 ))}
               </div>
             </div>
+
+            {demoSrc && (
+              <div className="bg-card border border-card-border rounded-xl p-6 mt-6">
+                <h2 className="text-xl font-semibold text-foreground mb-4">Live Demo</h2>
+                <div className="relative aspect-video bg-muted rounded-xl overflow-hidden">
+                  <iframe
+                    src={demoSrc}
+                    title={`${section.title} demo`}
+                    className="w-full h-full border-0 bg-background"
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    onLoad={() => setIframeLoaded(true)}
+                    data-testid="iframe-demo-inline"
+                  />
+
+                  {iframeBlocked && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/60 backdrop-blur-sm p-6 text-center">
+                      <p className="text-sm text-muted-foreground max-w-md">
+                        This demo cannot be embedded due to the site's security policy. Open it in a new tab.
+                      </p>
+                      <a
+                        href={demoSrc}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Open Live Demo
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-1">

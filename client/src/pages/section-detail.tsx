@@ -104,14 +104,45 @@ export default function SectionDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2">
             <div className="relative aspect-video bg-muted rounded-xl overflow-hidden mb-8">
-              <img
-                src={section.thumbnailUrl}
-                alt={section.title}
-                className="w-full h-full object-cover"
-                data-testid="img-preview-main"
-              />
-            </div>
+              {demoSrc && !iframeBlocked ? (
+                <iframe
+                  src={demoSrc}
+                  title={`${section.title} demo`}
+                  className="w-full h-full border-0 bg-background"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  onLoad={() => setIframeLoaded(true)}
+                  data-testid="iframe-demo"
+                />
+              ) : (
+                <img
+                  src={section.thumbnailUrl}
+                  alt={section.title}
+                  className="w-full h-full object-cover"
+                  data-testid="img-preview-main"
+                />
+              )}
 
+              {demoSrc && iframeBlocked && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/60 backdrop-blur-sm p-6 text-center">
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    {isShopifyDemo
+                      ? "This Shopify store prevents embedding in other sites. Open the demo in a new tab."
+                      : "This demo cannot be embedded due to the site's security policy. Open it in a new tab."}
+                  </p>
+                  <a
+                    href={demoSrc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Live Demo
+                  </a>
+                </div>
+              )}
+            </div>
             <div className="bg-card border border-card-border rounded-xl p-6">
 <<<<<<< HEAD
               <h2 className="text-xl font-semibold text-foreground mb-4" data-testid="text-description-title">
@@ -194,3 +225,30 @@ export default function SectionDetail() {
     </div>
   );
 }
+
+  const demoSrc = section?.demoUrl || section?.demoLink || "";
+
+  useEffect(() => {
+    // reset on src change
+    setIframeLoaded(false);
+    setIframeBlocked(false);
+    setIsShopifyDemo(false);
+
+    if (!demoSrc) return;
+
+    // Detect Shopify domains that commonly disallow embedding
+    try {
+      const host = new URL(demoSrc).hostname.toLowerCase();
+      const blocked = host.endsWith("myshopify.com") || host.endsWith("shopify.com");
+      if (blocked) {
+        setIsShopifyDemo(true);
+        setIframeBlocked(true);
+        return; // skip waiting for load
+      }
+    } catch {}
+
+    const id = setTimeout(() => {
+      if (!iframeLoaded) setIframeBlocked(true);
+    }, 2000);
+    return () => clearTimeout(id);
+  }, [demoSrc, iframeLoaded]);
