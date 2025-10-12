@@ -207,7 +207,18 @@ class WebFirebaseStorage implements IStorage {
 
   async createSection(insertSection: InsertSection): Promise<Section> {
     const now = new Date();
-    const slug = insertSection.slug || generateSlug(insertSection.title);
+    let baseSlug = insertSection.slug || generateSlug(insertSection.title);
+    
+    // Ensure unique slug by checking for duplicates and adding a numeric suffix
+    const allSections = await this.getAllSections();
+    const existingSlugs = allSections.map(s => s.slug);
+    let slug = baseSlug;
+    let counter = 1;
+    while (existingSlugs.includes(slug)) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    
     const payload = {
       title: insertSection.title,
       slug: slug,
@@ -304,7 +315,17 @@ class MemoryStorage implements IStorage {
 
   async createSection(insertSection: InsertSection): Promise<Section> {
     const now = new Date();
-    const slug = insertSection.slug || generateSlug(insertSection.title);
+    let baseSlug = insertSection.slug || generateSlug(insertSection.title);
+    
+    // Ensure unique slug by checking for duplicates and adding a numeric suffix
+    const existingSlugs = Array.from(this.sections.values()).map(s => s.slug);
+    let slug = baseSlug;
+    let counter = 1;
+    while (existingSlugs.includes(slug)) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    
     const section: Section = {
       id: randomUUID(),
       title: insertSection.title,

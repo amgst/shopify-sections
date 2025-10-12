@@ -28,6 +28,7 @@ export default function SectionCard({
   isPremium = false,
   demoUrl,
 }: SectionCardProps) {
+  // Create URL with ID and slug for unique, SEO-friendly URLs
   const sectionUrl = createSectionUrl(id, title);
   
   return (

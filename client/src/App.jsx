@@ -6,21 +6,32 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import Browse from "@/pages/browse";
 import SectionDetail from "@/pages/section-detail";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
 import NotFound from "@/pages/not-found";
+
 function Router() {
-    return (<Switch>
-      <Route path="/" component={Home}/>
-      <Route path="/browse" component={Browse}/>
-      <Route path="/section/:slug" component={SectionDetail}/>
-      <Route component={NotFound}/>
-    </Switch>);
+  return (
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/browse" component={Browse} />
+      <Route path="/section/:slug" component={SectionDetail} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
+
 function App() {
-    return (<QueryClientProvider client={queryClient}>
+  return (
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router />
       </TooltipProvider>
-    </QueryClientProvider>);
+    </QueryClientProvider>
+  );
 }
+
 export default App;

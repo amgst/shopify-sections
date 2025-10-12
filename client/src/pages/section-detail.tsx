@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
@@ -8,20 +8,20 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, ArrowLeft, Eye } from "lucide-react";
+import { Download, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Section } from "@shared/schema";
 
 export default function SectionDetail() {
-  const [, params] = useRoute<{ slug: string }>("/section/:slug");
+  const [, params] = useRoute("/section/:id");
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const slug = params?.slug ?? "";
+  const sectionId = params?.id || "";
 
   const { data: section, isLoading } = useQuery<Section>({
-    queryKey: ["/api/sections", `?slug=${encodeURIComponent(slug)}`],
-    enabled: !!slug,
+    queryKey: ["/api/sections", sectionId],
+    enabled: !!sectionId,
   });
 
   const { data: allSections } = useQuery<Section[]>({
@@ -29,45 +29,14 @@ export default function SectionDetail() {
   });
 
   const relatedSections = (allSections || [])
-    .filter((s) => s.id !== section?.id && s.category === section?.category)
+    .filter(s => s.id !== sectionId && s.category === section?.category)
     .slice(0, 3);
-
-  useEffect(() => {
-    if (section) {
-      document.title = `${section.title} - ${section.category} | Shopify Sections`;
-
-      let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-      if (!metaDescription) {
-        metaDescription = document.createElement("meta");
-        metaDescription.setAttribute("name", "description");
-        document.head.appendChild(metaDescription);
-      }
-      metaDescription.setAttribute("content", section.description || "");
-
-      const ogTags = [
-        { property: "og:title", content: `${section.title} - Shopify Sections` },
-        { property: "og:description", content: section.description },
-        { property: "og:image", content: section.thumbnailUrl },
-        { property: "og:type", content: "website" },
-      ];
-
-      ogTags.forEach(({ property, content }) => {
-        let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
-        if (!tag) {
-          tag = document.createElement("meta");
-          tag.setAttribute("property", property);
-          document.head.appendChild(tag);
-        }
-        tag.setAttribute("content", content || "");
-      });
-    }
-  }, [section]);
 
   const handleDownload = async () => {
     setIsDownloading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsDownloading(false);
-
+    
     toast({
       title: "Download Complete!",
       description: `${section?.title} has been downloaded successfully.`,
@@ -103,7 +72,9 @@ export default function SectionDetail() {
             <h1 className="text-3xl font-bold text-foreground mb-4" data-testid="text-not-found">
               Section Not Found
             </h1>
-            <p className="text-muted-foreground mb-8">The section you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground mb-8">
+              The section you're looking for doesn't exist.
+            </p>
             <Link href="/browse">
               <Button variant="outline" className="gap-2" data-testid="button-back-browse">
                 <ArrowLeft className="w-4 h-4" />
@@ -133,23 +104,38 @@ export default function SectionDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2">
             <div className="relative aspect-video bg-muted rounded-xl overflow-hidden mb-8">
-              <img src={section.thumbnailUrl} alt={section.title} className="w-full h-full object-cover" data-testid="img-preview-main" />
+              <img
+                src={section.thumbnailUrl}
+                alt={section.title}
+                className="w-full h-full object-cover"
+                data-testid="img-preview-main"
+              />
             </div>
 
             <div className="bg-card border border-card-border rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-4" data-testid="text-description-title">Description</h2>
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-full-description">{section.description}</p>
+              <h2 className="text-xl font-semibold text-foreground mb-4" data-testid="text-description-title">
+                Description
+              </h2>
+              <p className="text-muted-foreground leading-relaxed" data-testid="text-full-description">
+                {section.description}
+              </p>
             </div>
           </div>
 
           <div className="lg:col-span-1">
             <div className="sticky top-24 bg-card border border-card-border rounded-xl p-6 space-y-6">
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-3" data-testid="text-section-title">{section.title}</h1>
+                <h1 className="text-3xl font-bold text-foreground mb-3" data-testid="text-section-title">
+                  {section.title}
+                </h1>
                 <div className="flex items-center gap-3 mb-4">
-                  <Badge variant="secondary" data-testid="badge-category">{section.category}</Badge>
+                  <Badge variant="secondary" data-testid="badge-category">
+                    {section.category}
+                  </Badge>
                   {section.isPremium && (
-                    <Badge className="bg-accent text-accent-foreground" data-testid="badge-premium">Premium</Badge>
+                    <Badge className="bg-accent text-accent-foreground" data-testid="badge-premium">
+                      Premium
+                    </Badge>
                   )}
                 </div>
                 <p className="text-muted-foreground text-sm flex items-center gap-1.5" data-testid="text-download-count">
@@ -158,36 +144,36 @@ export default function SectionDetail() {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3">
-                {section.demoUrl && (
-                  <a href={section.demoUrl} target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" variant="outline" className="w-full gap-2">
-                      <Eye className="w-4 h-4" />
-                      Live Demo
-                    </Button>
-                  </a>
+              <Button
+                size="lg"
+                className="w-full gap-2"
+                onClick={handleDownload}
+                disabled={isDownloading}
+                data-testid="button-download"
+              >
+                {isDownloading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Download Section
+                  </>
                 )}
-                <Button size="lg" className="w-full gap-2" onClick={handleDownload} disabled={isDownloading} data-testid="button-download">
-                  {isDownloading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Downloading...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Download Section
-                    </>
-                  )}
-                </Button>
-              </div>
+              </Button>
 
               {relatedSections.length > 0 && (
                 <div className="pt-6 border-t border-border">
-                  <h3 className="font-semibold text-foreground mb-4" data-testid="text-related-title">Related Sections</h3>
-                  <div className="space-y-4">{relatedSections.map((related) => (
-                    <SectionCard key={related.id} {...related} />
-                  ))}</div>
+                  <h3 className="font-semibold text-foreground mb-4" data-testid="text-related-title">
+                    Related Sections
+                  </h3>
+                  <div className="space-y-4">
+                    {relatedSections.map((related) => (
+                      <SectionCard key={related.id} {...related} />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
