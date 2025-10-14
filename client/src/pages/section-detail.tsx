@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, ArrowLeft } from "lucide-react";
+import { Download, ArrowLeft, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Section } from "@shared/schema";
 
@@ -16,6 +16,9 @@ export default function SectionDetail() {
   const [, params] = useRoute("/section/:id");
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [iframeBlocked, setIframeBlocked] = useState(false);
+  const [isShopifyDemo, setIsShopifyDemo] = useState(false);
 
   const sectionId = params?.id || "";
 
@@ -29,18 +32,111 @@ export default function SectionDetail() {
   });
 
   const relatedSections = (allSections || [])
-    .filter(s => s.id !== sectionId && s.category === section?.category)
+    .filter((s) => s.id !== sectionId && s.category === section?.category)
     .slice(0, 3);
 
   const handleDownload = async () => {
     setIsDownloading(true);
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsDownloading(false);
-    
+
     toast({
       title: "Download Complete!",
       description: `${section?.title} has been downloaded successfully.`,
     });
+  };
+
+  const demoSrc = section?.demoUrl || section?.demoLink || "";
+
+  useEffect(() => {
+    // reset on src change
+    setIframeLoaded(false);
+    setIframeBlocked(false);
+    setIsShopifyDemo(false);
+
+    if (!demoSrc) return;
+
+    // Detect Shopify domains that commonly disallow embedding
+    try {
+      const host = new URL(demoSrc).hostname.toLowerCase();
+      const blocked =
+        host.endsWith("myshopify.com") || host.endsWith("shopify.com");
+      if (blocked) {
+        setIsShopifyDemo(true);
+        setIframeBlocked(true);
+        return; // skip waiting for load
+      }
+    } catch {}
+
+    const id = setTimeout(() => {
+      if (!iframeLoaded) setIframeBlocked(true);
+    }, 2000);
+    return () => clearTimeout(id);
+  }, [demoSrc, iframeLoaded]);
+
+  // Render description supporting paragraphs and lists (\n, -, *, +, and numbered lists)
+  const renderDescription = (text: string) => {
+    const blocks: JSX.Element[] = [];
+    const lines = (text || "").split("\n");
+    let i = 0;
+    let key = 0;
+
+    const isBullet = (l: string) => /^[-*+]\s+/.test(l.trim());
+    const isOrdered = (l: string) => /^\d+\.\s+/.test(l.trim());
+
+    while (i < lines.length) {
+      const line = lines[i];
+      if (!line || line.trim() === "") {
+        i++;
+        continue;
+      }
+
+      if (isBullet(line)) {
+        const items: string[] = [];
+        while (i < lines.length && isBullet(lines[i])) {
+          items.push(lines[i].trim().replace(/^[-*+]\s+/, ""));
+          i++;
+        }
+        blocks.push(
+          <ul key={key++} className="list-disc pl-6 space-y-1">
+            {items.map((t, idx) => (
+              <li key={idx}>{t}</li>
+            ))}
+          </ul>
+        );
+        continue;
+      }
+
+      if (isOrdered(line)) {
+        const items: string[] = [];
+        while (i < lines.length && isOrdered(lines[i])) {
+          items.push(lines[i].trim().replace(/^\d+\.\s+/, ""));
+          i++;
+        }
+        blocks.push(
+          <ol key={key++} className="list-decimal pl-6 space-y-1">
+            {items.map((t, idx) => (
+              <li key={idx}>{t}</li>
+            ))}
+          </ol>
+        );
+        continue;
+      }
+
+      const para: string[] = [];
+      while (
+        i < lines.length &&
+        lines[i].trim() !== "" &&
+        !isBullet(lines[i]) &&
+        !isOrdered(lines[i])
+      ) {
+        para.push(lines[i].trim());
+        i++;
+      }
+      blocks.push(<p key={key++}>{para.join(" ")}</p>);
+    }
+
+    return blocks;
   };
 
   if (isLoading) {
@@ -69,14 +165,21 @@ export default function SectionDetail() {
         <Header />
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="text-center py-16">
-            <h1 className="text-3xl font-bold text-foreground mb-4" data-testid="text-not-found">
+            <h1
+              className="text-3xl font-bold text-foreground mb-4"
+              data-testid="text-not-found"
+            >
               Section Not Found
             </h1>
             <p className="text-muted-foreground mb-8">
               The section you're looking for doesn't exist.
             </p>
             <Link href="/browse">
-              <Button variant="outline" className="gap-2" data-testid="button-back-browse">
+              <Button
+                variant="outline"
+                className="gap-2"
+                data-testid="button-back-browse"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Browse
               </Button>
@@ -143,29 +246,30 @@ export default function SectionDetail() {
                 </div>
               )}
             </div>
+            {/* ... existing code ... */}
             <div className="bg-card border border-card-border rounded-xl p-6">
-<<<<<<< HEAD
-              <h2 className="text-xl font-semibold text-foreground mb-4" data-testid="text-description-title">
+              <h2
+                className="text-xl font-semibold text-foreground mb-4"
+                data-testid="text-description-title"
+              >
                 Description
               </h2>
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-full-description">
-                {section.description}
-              </p>
-=======
-              <h2 className="text-xl font-semibold text-foreground mb-4" data-testid="text-description-title">Description</h2>
-              <div className="text-muted-foreground leading-relaxed space-y-4" data-testid="text-full-description">
-                {section.description.split('\n\n').map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+              <div
+                className="text-muted-foreground leading-relaxed space-y-4"
+                data-testid="text-full-description"
+              >
+                {renderDescription(section.description)}
               </div>
->>>>>>> cc2ab17ce7b434f1082100db5200b414e4a1b0df
             </div>
           </div>
 
           <div className="lg:col-span-1">
             <div className="sticky top-24 bg-card border border-card-border rounded-xl p-6 space-y-6">
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-3" data-testid="text-section-title">
+                <h1
+                  className="text-3xl font-bold text-foreground mb-3"
+                  data-testid="text-section-title"
+                >
                   {section.title}
                 </h1>
                 <div className="flex items-center gap-3 mb-4">
@@ -173,12 +277,18 @@ export default function SectionDetail() {
                     {section.category}
                   </Badge>
                   {section.isPremium && (
-                    <Badge className="bg-accent text-accent-foreground" data-testid="badge-premium">
+                    <Badge
+                      className="bg-accent text-accent-foreground"
+                      data-testid="badge-premium"
+                    >
                       Premium
                     </Badge>
                   )}
                 </div>
-                <p className="text-muted-foreground text-sm flex items-center gap-1.5" data-testid="text-download-count">
+                <p
+                  className="text-muted-foreground text-sm flex items-center gap-1.5"
+                  data-testid="text-download-count"
+                >
                   <Download className="w-4 h-4" />
                   {section.downloads.toLocaleString()} downloads
                 </p>
@@ -206,7 +316,10 @@ export default function SectionDetail() {
 
               {relatedSections.length > 0 && (
                 <div className="pt-6 border-t border-border">
-                  <h3 className="font-semibold text-foreground mb-4" data-testid="text-related-title">
+                  <h3
+                    className="font-semibold text-foreground mb-4"
+                    data-testid="text-related-title"
+                  >
                     Related Sections
                   </h3>
                   <div className="space-y-4">
@@ -225,30 +338,3 @@ export default function SectionDetail() {
     </div>
   );
 }
-
-  const demoSrc = section?.demoUrl || section?.demoLink || "";
-
-  useEffect(() => {
-    // reset on src change
-    setIframeLoaded(false);
-    setIframeBlocked(false);
-    setIsShopifyDemo(false);
-
-    if (!demoSrc) return;
-
-    // Detect Shopify domains that commonly disallow embedding
-    try {
-      const host = new URL(demoSrc).hostname.toLowerCase();
-      const blocked = host.endsWith("myshopify.com") || host.endsWith("shopify.com");
-      if (blocked) {
-        setIsShopifyDemo(true);
-        setIframeBlocked(true);
-        return; // skip waiting for load
-      }
-    } catch {}
-
-    const id = setTimeout(() => {
-      if (!iframeLoaded) setIframeBlocked(true);
-    }, 2000);
-    return () => clearTimeout(id);
-  }, [demoSrc, iframeLoaded]);
